@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
@@ -8,16 +8,14 @@ import { products } from '../mocks/products';
 
 // Swiper for Hero
 import type { Swiper as SwiperType } from 'swiper';
+// @ts-ignore
 import 'swiper/css';
+// @ts-ignore
 import 'swiper/css/effect-fade';
 import { Autoplay, EffectFade } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 const HomePage = () => {
-    const { scrollY } = useScroll();
-    const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
-    const heroScale = useTransform(scrollY, [0, 500], [1, 0.95]);
-
     // Dynamic Hero Data
     const heroSlides = [
         {

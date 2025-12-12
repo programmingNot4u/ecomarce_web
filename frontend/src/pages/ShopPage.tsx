@@ -135,7 +135,7 @@ const ShopPage = () => {
         );
     };
 
-    const handleSubCategoryToggle = (parentName: string, subName: string) => {
+    const handleSubCategoryToggle = (_parentName: string, subName: string) => {
         // For now, selecting a subcategory acts strictly as a selection (user might want to select multiple)
         // If we want it to filter by parent AND sub, logic might need adjustment but visually:
         // We'll just treat it as another 'category' string for the filter, assuming data supports it.

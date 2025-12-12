@@ -28,7 +28,6 @@ export default function ProductDetailPage() {
   const product = products.find((p) => p.id === Number(id));
   const { addToCart } = useCart();
   
-  const [selectedSize, setSelectedSize] = useState('M'); 
   const [quantity, setQuantity] = useState(1);
   const [openLightbox, setOpenLightbox] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0); 

@@ -104,11 +104,11 @@ const CartPage = () => {
                         <dl className="mt-6 space-y-4">
                             <div className="flex items-center justify-between">
                                 <dt className="text-sm text-gray-600">Subtotal</dt>
-                                <dd className="text-sm font-medium text-gray-900">Tk {subtotal.toFixed(2)}</dd>
+                                <dd className="text-sm font-medium text-gray-900">Tk {total.toFixed(2)}</dd>
                             </div>
                             <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                                 <dt className="text-base font-bold text-gray-900">Order Total</dt>
-                                <dd className="text-base font-bold text-gray-900">Tk {subtotal.toFixed(2)}</dd>
+                                <dd className="text-base font-bold text-gray-900">Tk {total.toFixed(2)}</dd>
                             </div>
                             <p className="text-xs text-gray-400">Shipping and taxes calculated at checkout.</p>
                         </dl>

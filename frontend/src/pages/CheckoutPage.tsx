@@ -99,7 +99,7 @@ export default function CheckoutPage() {
               animate="show"
             >
                 {/* Step 1: Shipping Address */}
-                <motion.div variants={itemVariants} className="border border-gray-200 bg-white p-6 shadow-sm mb-6 rounded-lg">
+                <motion.div variants={itemVariants as any} className="border border-gray-200 bg-white p-6 shadow-sm mb-6 rounded-lg">
                     <h2 className="flex items-center text-lg font-bold text-gray-900 border-b border-gray-200 pb-4 mb-6">
                         <span className="flex items-center justify-center w-8 h-8 rounded-full bg-black text-white text-sm font-bold mr-3">1</span>
                         SHIPPING ADDRESS
@@ -172,7 +172,7 @@ export default function CheckoutPage() {
                 </motion.div>
 
                 {/* Step 2: Shipping Method */}
-                <motion.div variants={itemVariants} className="border border-gray-200 bg-white p-6 shadow-sm mb-6 rounded-lg">
+                <motion.div variants={itemVariants as any} className="border border-gray-200 bg-white p-6 shadow-sm mb-6 rounded-lg">
                      <h2 className="flex items-center text-lg font-bold text-gray-900 border-b border-gray-200 pb-4 mb-6">
                         <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-500 text-white text-sm font-bold mr-3">2</span>
                         SHIPPING METHOD
@@ -181,7 +181,7 @@ export default function CheckoutPage() {
                     <RadioGroup defaultValue={1}>
                         <div className="space-y-4">
                             {deliveryMethods.map((method) => (
-                                <RadioGroup.Option key={method.id} value={method.id} className={({ active, checked }) => `
+                                <RadioGroup.Option key={method.id} value={method.id} className={({ checked }) => `
                                     relative block cursor-pointer rounded-lg border bg-white px-6 py-4 shadow-sm focus:outline-none sm:flex sm:justify-between transition-all duration-200 ease-in-out
                                     ${checked ? 'border-black ring-1 ring-black bg-gray-50 transform scale-[1.01]' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}
                                 `}>
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
                 </motion.div>
 
                 {/* Step 3: Payment Method */}
-                 <motion.div variants={itemVariants} className="border border-gray-200 bg-white p-6 shadow-sm mb-6 rounded-lg">
+                 <motion.div variants={itemVariants as any} className="border border-gray-200 bg-white p-6 shadow-sm mb-6 rounded-lg">
                      <h2 className="flex items-center text-lg font-bold text-gray-900 border-b border-gray-200 pb-4 mb-6">
                         <span className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-500 text-white text-sm font-bold mr-3">3</span>
                         PAYMENT METHOD
