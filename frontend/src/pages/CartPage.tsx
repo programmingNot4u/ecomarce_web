@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 const CartPage = () => {
-    const { cart, removeFromCart, updateQuantity, subtotal } = useCart();
+    const { cart, removeFromCart, updateQuantity, total } = useCart();
 
     if (cart.length === 0) {
         return (

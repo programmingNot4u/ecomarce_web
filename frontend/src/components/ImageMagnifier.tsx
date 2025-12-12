@@ -1,5 +1,5 @@
 
-import { MouseEvent, useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 
 interface ImageMagnifierProps {
   src: string;

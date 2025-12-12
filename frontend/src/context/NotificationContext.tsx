@@ -1,6 +1,6 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { AnimatePresence, motion } from 'framer-motion';
-import { createContext, ReactNode, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 
 interface Notification {
   id: string;
