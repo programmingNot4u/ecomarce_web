@@ -71,6 +71,13 @@ const ProductCard = ({ product }: { product: Product }) => {
                     )}
                 </button>
 
+                {/* Sale Badge */}
+                {product.salePrice && product.salePrice < product.price && (
+                     <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase tracking-widest z-10">
+                        Sale
+                    </div>
+                )}
+
                 {/* Quick Add Overlay on Hover */}
                 <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 z-10">
                     <motion.button 
@@ -118,7 +125,16 @@ const ProductCard = ({ product }: { product: Product }) => {
                         {product.name}
                     </Link>
                 </h3>
-                <p className="mt-1 text-sm text-gray-500 font-medium">Tk {product.price.toFixed(2)}</p>
+                <div className="mt-1 flex items-baseline gap-2">
+                    {product.salePrice && product.salePrice < product.price ? (
+                        <>
+                            <span className="text-sm font-medium text-red-600">Tk {product.salePrice.toLocaleString()}</span>
+                            <span className="text-xs text-gray-400 line-through">Tk {product.price.toLocaleString()}</span>
+                        </>
+                    ) : (
+                        <span className="text-sm font-medium text-gray-900">Tk {product.price.toLocaleString()}</span>
+                    )}
+                </div>
             </div>
         </motion.div>
     );

@@ -3,7 +3,9 @@ export interface Product {
     name: string;
     price: number;
     category: string;
+    categoryId?: string;
     brand: string;
+    status: 'published' | 'draft' | 'archived'; 
     inStock: boolean;
     onSale: boolean;
     image: string;
@@ -11,6 +13,34 @@ export interface Product {
     images?: string[];
     description: string;
     rating: number; // For sort
+    
+    // Advanced Fields
+    salePrice?: number;
+    sku?: string;
+    stockQuantity?: number;
+    variants?: {
+        id: string;
+        name: string; // e.g., Size
+        options: string[]; // e.g., S, M, L
+    }[];
+    combinations?: {
+        id: string;
+        sku?: string;
+        price?: number;
+        stockQuantity?: number;
+        attributes: Record<string, string>; // e.g. { "Size": "S", "Color": "Red" }
+    }[];
+    seoTitle?: string;
+    seoDescription?: string;
+    supplierName?: string;
+    supplierContact?: string;
+    
+    // Dynamic Content
+    sections?: {
+        id: string;
+        title: string;
+        content: string; // HTML or Text
+    }[];
 }
 
 // Helper to generate products
@@ -21,6 +51,7 @@ const generateProducts = () => {
             price: 1250,
             category: 'Skin & Hair',
             brand: 'Illiyoon',
+            status: 'published',
             inStock: true,
             onSale: false,
             image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -170,6 +201,7 @@ const generateProducts = () => {
             ...base,
             id: i + 1,
             images: [base.image, base.hoverImage], // Populate array
+            status: 'published' as const
         });
     }
     return products;

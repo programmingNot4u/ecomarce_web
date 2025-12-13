@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InvoiceTemplate, type InvoiceData } from '../../components/InvoiceTemplate';
 import { useCart } from '../../context/CartContext';
+import { useNotification } from '../../context/NotificationContext';
 
 // Simple Modal Component for Order Details
 const OrderDetailsModal = ({ order, onClose }: { order: any, onClose: () => void }) => {
@@ -117,6 +118,7 @@ const OrderDetailsModal = ({ order, onClose }: { order: any, onClose: () => void
 
 export default function DashboardOrders() {
     const { addToCart } = useCart();
+    const { showNotification } = useNotification();
     const navigate = useNavigate();
     const invoiceRef = useRef<HTMLDivElement>(null);
     const [generatingPdfId, setGeneratingPdfId] = useState<string | null>(null);
@@ -176,7 +178,7 @@ export default function DashboardOrders() {
             pdf.save(`invoice-${invoiceData.orderId}.pdf`);
         } catch (error) {
             console.error('Error generating PDF:', error);
-            alert('Failed to download invoice. Please try again.');
+            showNotification('Failed to download invoice. Please try again.', 'error');
         } finally {
             setGeneratingPdfId(null);
             setPdfOrder(null);

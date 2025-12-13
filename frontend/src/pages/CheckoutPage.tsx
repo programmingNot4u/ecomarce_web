@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import FloatingLabelInput from '../components/ui/FloatingLabelInput';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useNotification } from '../context/NotificationContext';
 
 const deliveryMethods = [
   { id: 1, title: 'Standard Shipping', turnaround: 'within 3-4 days inside Dhaka, within 4-7 days outside Dhaka', price: 180.00 },
@@ -17,6 +18,7 @@ const paymentMethods = [
 
 export default function CheckoutPage() {
   const { cart, total, clearCart } = useCart();
+  const { showNotification } = useNotification();
   const { user } = useAuth();
   const navigate = useNavigate();
   const shipping = 180.00;
@@ -45,7 +47,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     
     if (cart.length === 0) {
-        alert("Your cart is empty!");
+        showNotification("Your cart is empty!", 'error');
         return;
     }
 

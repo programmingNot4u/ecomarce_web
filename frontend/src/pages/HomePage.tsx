@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import ShippingBanner from '../components/ShippingBanner';
 import TopBrands from '../components/TopBrands';
-import { products } from '../mocks/products';
+import { useProducts } from '../context/ProductContext';
 
 // Swiper for Hero
 import type { Swiper as SwiperType } from 'swiper';
@@ -16,6 +16,7 @@ import { Autoplay, EffectFade } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 const HomePage = () => {
+    const { products } = useProducts();
     // Dynamic Hero Data
     const heroSlides = [
         {
@@ -223,7 +224,10 @@ const HomePage = () => {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border border-gray-200">
-                     {products.slice(0, 12).map((product) => (
+                     {products
+                        .filter(p => p.status === 'published' || !p.status) // Filter hidden
+                        .slice(0, 12)
+                        .map((product) => (
                         <div key={product.id} className="bg-white border-b border-r border-gray-100 p-4">
                             <ProductCard product={product} />
                         </div>

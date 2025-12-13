@@ -5,19 +5,10 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import maryoneLogo from '../../assets/logos/maryone_logo.png';
 import { useCart } from '../../context/CartContext';
+import { useProducts } from '../../context/ProductContext';
 import CartDrawer from './CartDrawer';
 import MegaMenu from './MegaMenu';
 import TopBar from './TopBar';
-
-const navigation = [
-  { name: 'WOMEN', href: '/category/women' },
-  { name: 'MEN', href: '/category/men' },
-  { name: 'KIDS', href: '#' },
-  { name: 'HOME DÉCOR', href: '/category/home-decor' },
-  { name: 'JEWELLERY', href: '/category/jewellery' },
-  { name: 'SKIN & HAIR', href: '/category/skin-hair' },
-  { name: 'GIFTS & CRAFTS', href: '/category/gifts' },
-];
 
 const Header = () => {
     const { scrollY } = useScroll();
@@ -25,6 +16,14 @@ const Header = () => {
     const navigationHook = useNavigate(); // Renamed to avoid conflict with 'navigation' array
     const location = useLocation();
     const isHomePage = location.pathname === '/';
+    const { categories } = useProducts();
+
+    // Derived navigation from dynamic categories
+    const navigation = categories.map(cat => ({
+        name: cat.name.toUpperCase(),
+        href: `/category/${encodeURIComponent(cat.name).toLowerCase()}`,
+        id: cat.id
+    }));
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     

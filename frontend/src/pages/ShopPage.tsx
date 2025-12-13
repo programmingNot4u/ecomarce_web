@@ -2,12 +2,17 @@ import { Dialog, Menu, Transition } from '@headlessui/react';
 import { ChevronDownIcon, FunnelIcon, MagnifyingGlassIcon, Squares2X2Icon } from '@heroicons/react/20/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import PriceRangeSlider from '../components/shop/PriceRangeSlider';
 import SearchingLoader from '../components/ui/SearchingLoader';
-import { products } from '../mocks/products';
+import { type Category, useProducts } from '../context/ProductContext';
+
+// Removed local mock data
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(' ');
+}
 
 const sortOptions = [
   { name: 'Most Popular', value: 'popular' },
@@ -17,74 +22,11 @@ const sortOptions = [
   { name: 'Price: High to Low', value: 'price-desc' },
 ];
 
-// Mock Data for Sidebar
-// Define type for better type safety inside component if needed, but inferred is fine for now
-const categories = [
-    { name: 'Accessories', count: 4, subCategories: [] },
-    { 
-        name: 'Baby Product', 
-        count: 11, 
-        hasSub: true,
-        subCategories: [
-            { name: 'Diapers', count: 5 },
-            { name: 'Wipes', count: 3 },
-            { name: 'Skincare', count: 3 }
-        ]
-    },
-    { 
-        name: 'Beauty & Personal Care', 
-        count: 409, 
-        hasSub: true,
-        subCategories: [
-            { name: 'Skincare', count: 200 },
-            { name: 'Haircare', count: 150 },
-            { name: 'Fragrance', count: 59 }
-        ]
-    },
-    { name: 'Combo Set', count: 7, subCategories: [] },
-    { 
-        name: 'Food & Supplement', 
-        count: 1, 
-        hasSub: true,
-        subCategories: [
-            { name: 'Vitamins', count: 1 }
-        ]
-    },
-    { name: 'Food Supplements', count: 2, subCategories: [] },
-    { 
-        name: 'Lip Care', 
-        count: 12, 
-        hasSub: true,
-        subCategories: [
-            { name: 'Balms', count: 8 },
-            { name: 'Masks', count: 4 }
-        ]
-    },
-    { name: 'Makeup', count: 14, subCategories: [] },
-    { name: 'Melasma Solution', count: 3, subCategories: [] },
-    { name: 'Toothpaste', count: 3, subCategories: [] },
-];
-
-const brands = [
-    { name: 'Illiyoon', count: 7 },
-    { name: 'Innisfree', count: 10, logo: true }, // mocked logo flag
-    { name: 'Isntree', count: 2 },
-    { name: 'Iunik', count: 2, logo: true },
-    { name: 'Jigott', count: 5 },
-    { name: 'JMsolution', count: 1 },
-    { name: 'Cosrx', count: 15 },
-    { name: 'Laneige', count: 8 },
-    { name: 'Some By Mi', count: 12 },
-];
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
-
 const ShopPage = () => {
     const { category } = useParams();
     const [searchParams] = useSearchParams(); // Get URL params
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+    const { products, categories, brands } = useProducts(); // Dynamic Data
     const [filteredProducts, setFilteredProducts] = useState(products);
     const [isSearching, setIsSearching] = useState(false); // Loading state
 
@@ -94,33 +36,111 @@ const ShopPage = () => {
     const [gridCols, setGridCols] = useState(4);
     
     // Filter States
-    const [priceRange, setPriceRange] = useState({ min: 0, max: 8000 });
+    // Filter States
+    const [priceRange, setPriceRange] = useState({ min: 0, max: 1000000 });
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+
     const [brandSearch, setBrandSearch] = useState('');
     const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
     const [stockStatus, setStockStatus] = useState({ onSale: false, inStock: false });
 
-    // Sync URL Category to Filter State
-    useEffect(() => {
-        if (category) {
-            setSelectedCategories([decodeURIComponent(category)]);
-            // Auto expand the category if it has subcategories
-            const matchingCat = categories.find(c => c.name === decodeURIComponent(category));
-            if (matchingCat && matchingCat.hasSub) {
-                 setExpandedCategories(prev => [...prev, matchingCat.name]);
+    // --- Dynamic Scope Logic ---
+    
+    // Helper: Find category node deeply
+    const findCategoryDeep = (cats: Category[], slug: string): Category | null => {
+        for (const cat of cats) {
+            if (cat.name.toLowerCase() === slug || cat.name.toLowerCase() === slug.replace(/-/g, ' & ')) return cat;
+            if (cat.subCategories) {
+                const found = findCategoryDeep(cat.subCategories, slug);
+                if (found) return found;
             }
-        } else {
-            setSelectedCategories([]);
         }
-    }, [category]);
+        return null;
+    };
 
-    // Sync URL Search Param to State
+    // Helper: Get all descendant category names (for product filtering)
+    const getAllCategoryNames = (cat: Category): string[] => {
+        let names = [cat.name];
+        if (cat.subCategories) {
+            cat.subCategories.forEach(sub => {
+                names = [...names, ...getAllCategoryNames(sub)];
+            });
+        }
+        return names;
+    };
+
+    // 1. Determine "Base Scope" (Products relevant to current URL)
+    // 1. Determine "Base Scope" (Products relevant to current URL)
+    const activeCategorySlug = category ? decodeURIComponent(category).toLowerCase() : null;
+    
+    // Memoize baseProducts to prevent infinite effect loops
+    const baseProducts = useMemo(() => {
+        // Find category node (handle slugs)
+        const findNode = (cats: Category[], slug: string): Category | null => {
+             for (const cat of cats) {
+                if (cat.name.toLowerCase() === slug || cat.name.toLowerCase() === slug.replace(/-/g, ' & ')) return cat;
+                if (cat.subCategories) {
+                    const found = findNode(cat.subCategories, slug);
+                    if (found) return found;
+                }
+             }
+             return null;
+        };
+        const activeNode = activeCategorySlug ? findNode(categories, activeCategorySlug) : null;
+        
+        // Get all valid sub-category names deeply
+        const getNames = (cat: Category): string[] => {
+            let names = [cat.name.toLowerCase()];
+            if (cat.subCategories) {
+                cat.subCategories.forEach(sub => {
+                    names = [...names, ...getNames(sub)];
+                });
+            }
+            return names;
+        };
+        const validNames = activeNode ? getNames(activeNode) : [];
+
+        return products.filter(p => {
+            // Filter by Status (Public View)
+            if (p.status !== 'published' && p.status !== undefined) return false;
+
+            if (!activeNode) return true; // Shop All
+            // Loose matching: check if product category (lowercase) matches any valid name (lowercase)
+            return validNames.includes(p.category.toLowerCase());
+        });
+    }, [category, categories, products]); // Only re-calc if URL, categories or products change
+
+    const activeCategoryNode = useMemo(() => {
+        if (!activeCategorySlug) return null;
+        const findNode = (cats: Category[], slug: string): Category | null => {
+             for (const cat of cats) {
+                if (cat.name.toLowerCase() === slug || cat.name.toLowerCase() === slug.replace(/-/g, ' & ')) return cat;
+                if (cat.subCategories) {
+                    const found = findNode(cat.subCategories, slug);
+                    if (found) return found;
+                }
+             }
+             return null;
+        };
+        return findNode(categories, activeCategorySlug);
+    }, [activeCategorySlug, categories]);
+
+    // 2. Derive Sidebar Options
+    const availableBrands = Array.from(new Set(baseProducts.map(p => p.brand).filter(Boolean)));
+    const sidebarCategories = activeCategoryNode && activeCategoryNode.subCategories && activeCategoryNode.subCategories.length > 0
+        ? activeCategoryNode.subCategories 
+        : (!activeCategoryNode ? categories : []);
+
+    // Sync URL Category to Filter State (Initial Selection)
+    useEffect(() => {
+        // Reset local filters when main category context changes
+        setSelectedCategories([]);
+    }, [category]); 
+
+    // Sync URL Search Param
     useEffect(() => {
         const query = searchParams.get('q');
-        if (query) {
-            setSearchQuery(query);
-        }
+        if (query) setSearchQuery(query);
     }, [searchParams]);
 
     // Pagination State
@@ -128,32 +148,9 @@ const ShopPage = () => {
     const [loadingMore, setLoadingMore] = useState(false);
 
     // Handlers
-    const handleCategoryToggle = (name: string, hasSub: boolean = false) => {
+    const handleCategoryToggle = (name: string) => {
         setSelectedCategories(prev => 
             prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
-        );
-        if (hasSub) {
-            setExpandedCategories(prev => 
-                prev.includes(name) ? prev : [...prev, name]
-            );
-        }
-    };
-
-    const handleExpandToggle = (name: string, e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent triggering selection when expanding
-        setExpandedCategories(prev => 
-            prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
-        );
-    };
-
-    const handleSubCategoryToggle = (_parentName: string, subName: string) => {
-        // For now, selecting a subcategory acts strictly as a selection (user might want to select multiple)
-        // If we want it to filter by parent AND sub, logic might need adjustment but visually:
-        // We'll just treat it as another 'category' string for the filter, assuming data supports it.
-        // Or if we want strict hierarchy, we'd add to selectedCategories.
-        // Let's add it to selectedCategories for simplicity.
-        setSelectedCategories(prev => 
-            prev.includes(subName) ? prev.filter(c => c !== subName) : [...prev, subName]
         );
     };
 
@@ -163,12 +160,12 @@ const ShopPage = () => {
         );
     };
 
-    // Filter Logic
+    // Filter Logic (Applied ON TOP of Memoized Base Scope)
     useEffect(() => {
-        setIsSearching(true); // Start loading
+        setIsSearching(true);
         
         const timer = setTimeout(() => {
-            let result = [...products];
+            let result = [...baseProducts]; 
 
             // 1. Search Query
             if (searchQuery) {
@@ -180,27 +177,24 @@ const ShopPage = () => {
             }
 
             // 2. Filters
-            
-            // Price Filter
-            result = result.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
+            // 2. Filters
+            result = result.filter(p => {
+                const priceVal = Number(String(p.price).replace(/[^0-9.-]+/g,""));
+                return !isNaN(priceVal) && priceVal >= priceRange.min && priceVal <= priceRange.max;
+            });
 
-            // Category Filter
             if (selectedCategories.length > 0) {
-                result = result.filter(p => selectedCategories.includes(p.category));
+                // Case-insensitive check
+                result = result.filter(p => selectedCategories.some(cat => cat.toLowerCase() === p.category.toLowerCase()));
             }
 
-            // Brand Filter
             if (selectedBrands.length > 0) {
-                result = result.filter(p => selectedBrands.includes(p.brand));
+                 // Case-insensitive check
+                result = result.filter(p => selectedBrands.some(brand => brand.toLowerCase() === p.brand.toLowerCase()));
             }
 
-            // Stock Status Filter
-            if (stockStatus.onSale) {
-                result = result.filter(p => p.onSale);
-            }
-            if (stockStatus.inStock) {
-                result = result.filter(p => p.inStock);
-            }
+            if (stockStatus.onSale) result = result.filter(p => p.onSale);
+            if (stockStatus.inStock) result = result.filter(p => p.inStock);
 
             // Sorting
             if (sortOption.value === 'price-asc') result.sort((a, b) => a.price - b.price);
@@ -209,14 +203,14 @@ const ShopPage = () => {
             else if (sortOption.value === 'date') result.sort((a, b) => b.id - a.id);
 
             setFilteredProducts(result);
-            setDisplayLimit(12); // Reset pagination on filter change
-            setIsSearching(false); // Stop loading
-        }, 4500); // 4500ms delay for full loop
+            setDisplayLimit(12);
+            setIsSearching(false);
+        }, 800); // Reduced delay for responsiveness
         
         return () => clearTimeout(timer);
-    }, [searchQuery, sortOption, priceRange, selectedCategories, selectedBrands, stockStatus]);
+    }, [searchQuery, sortOption, priceRange, selectedCategories, selectedBrands, stockStatus, baseProducts]);
 
-    // Infinite Scroll Logic
+    // Infinite Scroll & Filtered brands logic
     const visibleProducts = filteredProducts.slice(0, displayLimit);
     const hasMore = visibleProducts.length < filteredProducts.length;
 
@@ -236,74 +230,51 @@ const ShopPage = () => {
         return () => { if (sentinel) observer.unobserve(sentinel); };
     }, [hasMore, visibleProducts.length]);
 
-    const filteredBrands = brands.filter(b => b.name.toLowerCase().includes(brandSearch.toLowerCase()));
+    // Use availableBrands for the list, not global brands
+    // But we need 'Brand' type mapping. 'availableBrands' is string[]. availableBrandObjects?
+    const availableBrandObjects = brands.filter(b => availableBrands.includes(b.name));
+    
+    const filteredSidebarBrands = availableBrandObjects.filter(b => b.name.toLowerCase().includes(brandSearch.toLowerCase()));
 
     const SidebarContent = () => (
         <div className="space-y-10">
             {/* Price Filter */}
             <PriceRangeSlider 
                 min={0} 
-                max={8000} 
+                max={1000000} 
                 onChange={(min, max) => setPriceRange({ min, max })} 
             />
 
-            {/* Categories */}
+            {/* Categories - Dynamic Title */}
             <div>
-                <h3 className="text-gray-900 font-medium mb-4">All Categories</h3>
-                <ul className="space-y-3">
-                    {categories.map((cat) => (
-                        <li key={cat.name} className="flex flex-col">
-                            <div 
-                                className="flex items-center justify-between group cursor-pointer" 
-                                onClick={() => handleCategoryToggle(cat.name, cat.hasSub)}
-                            >
-                                <div className={`text-sm ${selectedCategories.includes(cat.name) ? 'text-black font-medium' : 'text-gray-500 group-hover:text-black'}`}>
-                                    {cat.name}
-                                </div>
-                                <div className="flex items-center gap-2">
+                <h3 className="text-gray-900 font-medium mb-4">
+                    {activeCategoryNode ? `${activeCategoryNode.name} Subcategories` : 'All Categories'}
+                </h3>
+                {sidebarCategories.length > 0 ? (
+                    <ul className="space-y-3">
+                        {sidebarCategories.map((cat) => (
+                            <li key={cat.name} className="flex flex-col">
+                                <div 
+                                    className="flex items-center justify-between group cursor-pointer" 
+                                    onClick={() => handleCategoryToggle(cat.name)}
+                                >
+                                    <div className={`text-sm ${selectedCategories.includes(cat.name) ? 'text-black font-medium' : 'text-gray-500 group-hover:text-black'}`}>
+                                        {cat.name}
+                                    </div>
                                     <span className={`text-xs px-2 py-0.5 rounded-full border ${selectedCategories.includes(cat.name) ? 'border-black text-black' : 'border-gray-200 text-gray-400'}`}>
+                                        {/* Dynamic Count: Use context-provided recursive count */}
                                         {cat.count}
                                     </span>
-                                    {cat.hasSub && (
-                                        <button 
-                                            onClick={(e) => handleExpandToggle(cat.name, e)}
-                                            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                                        >
-                                            <ChevronDownIcon 
-                                                className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
-                                                    expandedCategories.includes(cat.name) ? 'rotate-180' : ''
-                                                }`} 
-                                            />
-                                        </button>
-                                    )}
                                 </div>
-                            </div>
-                            
-                            {/* Sub Categories */}
-                            {cat.hasSub && expandedCategories.includes(cat.name) && (
-                                <ul className="mt-2 ml-4 space-y-2 border-l border-gray-100 pl-4">
-                                    {cat.subCategories.map((sub) => (
-                                        <li 
-                                            key={sub.name} 
-                                            className="cursor-pointer text-sm text-gray-500 hover:text-black flex justify-between items-center group"
-                                            onClick={() => handleSubCategoryToggle(cat.name, sub.name)}
-                                        >
-                                            <span className={selectedCategories.includes(sub.name) ? 'text-black font-medium' : ''}>
-                                                {sub.name}
-                                            </span>
-                                            <span className="text-xs text-gray-300 group-hover:text-gray-400">
-                                                {sub.count}
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </li>
-                    ))}
-                </ul>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                   <p className="text-sm text-gray-400 italic">No further categories</p>
+                )}
             </div>
 
-            {/* Brand Filter */}
+            {/* Brand Filter - Dynamic */}
             <div>
                 <h3 className="text-gray-900 font-medium mb-4">Brand</h3>
                 <div className="relative mb-4">
@@ -316,8 +287,9 @@ const ShopPage = () => {
                     />
                     <MagnifyingGlassIcon className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
                 </div>
+                {/* Scrollable area only if many items */}
                 <div className="max-h-60 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-200">
-                    {filteredBrands.map((brand) => (
+                    {filteredSidebarBrands.length > 0 ? filteredSidebarBrands.map((brand) => (
                         <div key={brand.name} className="flex items-center justify-between">
                             <div className="flex items-center">
                                 <input
@@ -328,13 +300,18 @@ const ShopPage = () => {
                                     className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
                                 />
                                 <label htmlFor={`brand-${brand.name}`} className="ml-3 text-sm text-gray-600 flex items-center gap-2">
-                                    {brand.logo && <span className="font-serif italic font-bold text-xs">{brand.name}</span>} 
-                                    {!brand.logo && brand.name}
+                                     {brand.image && <img src={brand.image} alt={brand.name} className="h-4 w-4 object-contain" /> } 
+                                     {!brand.image && brand.logo && <span className="font-serif italic font-bold text-xs">{brand.name}</span>}
+                                     {brand.name}
                                 </label>
                             </div>
-                            <span className="text-xs text-gray-400 border border-gray-200 px-1.5 rounded-full">{brand.count}</span>
+                            <span className="text-xs text-gray-400 border border-gray-200 px-1.5 rounded-full">
+                                {baseProducts.filter(p => p.brand === brand.name).length}
+                            </span>
                         </div>
-                    ))}
+                    )) : (
+                        <div className="text-sm text-gray-400">No brands found.</div>
+                    )}
                 </div>
             </div>
 
@@ -558,7 +535,7 @@ const ShopPage = () => {
                                             setSearchQuery('');
                                             setSelectedCategories([]);
                                             setSelectedBrands([]);
-                                            setPriceRange({ min: 0, max: 8000 });
+                                            setPriceRange({ min: 0, max: 1000000 });
                                             setStockStatus({ onSale: false, inStock: false });
                                         }}
                                         className="text-black font-medium underline hover:text-gray-700"

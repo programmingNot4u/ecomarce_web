@@ -70,7 +70,7 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({ min, max, onChange 
 
                 <div className="relative w-full">
                     <div className="absolute h-1 w-full bg-gray-200 rounded-full z-10 transition-all duration-300" />
-                    <div ref={range} className="absolute h-1 bg-red-700 rounded-full z-20 transition-all duration-300" />
+                    <div ref={range} className="absolute h-1 bg-black rounded-full z-20 transition-all duration-300" />
                 </div>
                 
                 {/* Custom styling for range inputs is needed in global CSS or here via style tag if not using global */}
@@ -80,23 +80,25 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({ min, max, onChange 
                         -webkit-tap-highlight-color: transparent;
                         pointer-events: auto;
                         height: 16px;
-                        width: 4px;
-                        border-radius: 0px;
-                        background-color: #b91c1c;
+                        width: 16px;
+                        border-radius: 50%;
+                        background-color: #000000;
                         cursor: pointer;
                         margin-top: -6px; /* Adjust based on track height */
-                        border: none;
+                        border: 2px solid white;
+                        box-shadow: 0 0 0 1px #e5e7eb;
                         position: relative;
                         z-index: 50;
                     }
                     .thumb::-moz-range-thumb {
                         pointer-events: auto;
                         height: 16px;
-                        width: 4px;
-                        border-radius: 0px;
-                        background-color: #b91c1c;
+                        width: 16px;
+                        border-radius: 50%;
+                        background-color: #000000;
                         cursor: pointer;
-                        border: none;
+                        border: 2px solid white;
+                        box-shadow: 0 0 0 1px #e5e7eb;
                     }
                 `}</style>
             </div>
@@ -107,7 +109,7 @@ const PriceRangeSlider: React.FC<PriceRangeSliderProps> = ({ min, max, onChange 
                 </div>
                 <button 
                     onClick={() => onChange(minVal, maxVal)}
-                    className="bg-red-700 text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-red-800 transition-colors"
+                    className="bg-black text-white px-5 py-2 rounded-sm text-xs font-bold uppercase tracking-wider hover:bg-gray-800 transition-colors shadow-sm"
                 >
                     Filter
                 </button>
