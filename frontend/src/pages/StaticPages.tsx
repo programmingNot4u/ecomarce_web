@@ -150,39 +150,20 @@ export const FAQPage = () => (
     </div>
 );
 
-export const TermsPage = () => (
-    <div className="bg-white min-h-screen py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto prose prose-black">
-            <h1>Terms & Conditions</h1>
-            <p>Last updated: December 13, 2025</p>
-            <h3>1. Introduction</h3>
-            <p>Welcome to MARYONÉ. By using our website, you agree to these terms and conditions.</p>
-            <h3>2. Intellectual Property</h3>
-            <p>All content on this site is the property of MARYONÉ and protected by copyright laws.</p>
-            <h3>3. Product Information</h3>
-            <p>We try to be as accurate as possible, but we do not warrant that product descriptions are error-free.</p>
-        </div>
-    </div>
-);
 
-export const PrivacyPage = () => (
-     <div className="bg-white min-h-screen py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto prose prose-black">
-            <h1>Privacy Policy</h1>
-            <p>Last updated: December 13, 2025</p>
-            <h3>1. Data Collection</h3>
-            <p>We collect information you provide directly to us when you make a purchase or sign up for our newsletter.</p>
-            <h3>2. Data Usage</h3>
-            <p>We use your information to process orders and improve our services.</p>
-            <h3>3. Cookies</h3>
-            <p>We use cookies to enhance your browsing experience.</p>
-        </div>
-    </div>
-);
+
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import errorAnimation from '../assets/lottie_animations/Error.json?url';
 
 export const NotFoundPage = () => (
-    <div className="bg-white min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
-        <h1 className="text-9xl font-bold text-gray-200">404</h1>
+    <div className="bg-white min-h-screen flex flex-col items-center justify-center px-0 sm:px-6 lg:px-8 overflow-hidden">
+        <div className="w-[150%] sm:w-full md:max-w-3xl">
+             <DotLottieReact
+                src={errorAnimation}
+                loop
+                autoplay
+            />
+        </div>
         <h2 className="text-2xl font-bold text-gray-900 mt-4">Page Not Found</h2>
         <p className="text-gray-600 mt-2 mb-8 text-center max-w-md">The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
         <a href="/" className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-black hover:bg-gray-800 transition-colors">

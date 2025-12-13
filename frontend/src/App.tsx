@@ -14,7 +14,7 @@ import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import RegisterPage from './pages/RegisterPage';
-import { AboutPage, ContactPage, FAQPage, NotFoundPage, PrivacyPage, TermsPage } from './pages/StaticPages';
+import { AboutPage, ContactPage, FAQPage, NotFoundPage } from './pages/StaticPages';
 import WishlistPage from './pages/WishlistPage';
 
 import { AuthProvider } from './context/AuthContext';
@@ -44,8 +44,6 @@ function App() {
           <Route path="about" element={<AboutPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="faq" element={<FAQPage />} />
-          <Route path="terms" element={<TermsPage />} />
-          <Route path="privacy" element={<PrivacyPage />} />
 
           {/* Dashboard Routes */}
           <Route path="account" element={<DashboardLayout />}>

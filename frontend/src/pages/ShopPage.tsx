@@ -3,9 +3,10 @@ import { ChevronDownIcon, FunnelIcon, MagnifyingGlassIcon, Squares2X2Icon } from
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { Fragment, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import PriceRangeSlider from '../components/shop/PriceRangeSlider';
+import SearchingLoader from '../components/ui/SearchingLoader';
 import { products } from '../mocks/products';
 
 const sortOptions = [
@@ -82,11 +83,13 @@ function classNames(...classes: string[]) {
 
 const ShopPage = () => {
     const { category } = useParams();
+    const [searchParams] = useSearchParams(); // Get URL params
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [filteredProducts, setFilteredProducts] = useState(products);
-    
+    const [isSearching, setIsSearching] = useState(false); // Loading state
+
     // States for Functionality
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || ''); // Init from URL
     const [sortOption, setSortOption] = useState(sortOptions[0]);
     const [gridCols, setGridCols] = useState(4);
     
@@ -111,6 +114,14 @@ const ShopPage = () => {
             setSelectedCategories([]);
         }
     }, [category]);
+
+    // Sync URL Search Param to State
+    useEffect(() => {
+        const query = searchParams.get('q');
+        if (query) {
+            setSearchQuery(query);
+        }
+    }, [searchParams]);
 
     // Pagination State
     const [displayLimit, setDisplayLimit] = useState(12);
@@ -154,62 +165,55 @@ const ShopPage = () => {
 
     // Filter Logic
     useEffect(() => {
-        let result = [...products];
-
-        // 1. Search Query
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            result = result.filter(p => 
-                p.name.toLowerCase().includes(query) || 
-                p.category.toLowerCase().includes(query)
-            );
-        }
-
-        // 2. Filters
+        setIsSearching(true); // Start loading
         
-        // Price Filter
-        result = result.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
+        const timer = setTimeout(() => {
+            let result = [...products];
 
-        // Category Filter
-        if (selectedCategories.length > 0) {
-            // Check if product category matches any selected category (parent or sub)
-            // Ideally backend handles hierarchy. Here we assume exact match or loose string match if needed.
-            // But since our mock products have specific string categories, we'll match exact.
-            // If user selects "Skincare" (sub of "Beauty"), products must have category "Skincare" or we check parent.
-            // For this UI demo, exact match is safest for the "8 results" accuracy.
-            result = result.filter(p => selectedCategories.includes(p.category) || 
-                // Allow parent match to show all kids if parent selected? 
-                // If "Beauty" selected, show items with cat "Beauty". 
-                // If items only have specific cat like "Serum" which isn't in filter list, they disappear.
-                // Our mock data categories: "Skin & Hair", "Gifts & Crafts", "Jewellery", "Women".
-                // They align with some sidebar items but not all. "Beauty & Personal Care" isn't in mock products list exactly.
-                // To make this work visually without changing all product data:
-                // We'll leave exact match.
-                selectedCategories.includes(p.category)
-            );
-        }
+            // 1. Search Query
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                result = result.filter(p => 
+                    p.name.toLowerCase().includes(query) || 
+                    p.category.toLowerCase().includes(query)
+                );
+            }
 
-        // Brand Filter
-        if (selectedBrands.length > 0) {
-            result = result.filter(p => selectedBrands.includes(p.brand));
-        }
+            // 2. Filters
+            
+            // Price Filter
+            result = result.filter(p => p.price >= priceRange.min && p.price <= priceRange.max);
 
-        // Stock Status Filter
-        if (stockStatus.onSale) {
-            result = result.filter(p => p.onSale);
-        }
-        if (stockStatus.inStock) {
-            result = result.filter(p => p.inStock);
-        }
+            // Category Filter
+            if (selectedCategories.length > 0) {
+                result = result.filter(p => selectedCategories.includes(p.category));
+            }
 
-        // Sorting
-        if (sortOption.value === 'price-asc') result.sort((a, b) => a.price - b.price);
-        else if (sortOption.value === 'price-desc') result.sort((a, b) => b.price - a.price);
-        else if (sortOption.value === 'rating') result.sort((a, b) => b.rating - a.rating);
-        else if (sortOption.value === 'date') result.sort((a, b) => b.id - a.id);
+            // Brand Filter
+            if (selectedBrands.length > 0) {
+                result = result.filter(p => selectedBrands.includes(p.brand));
+            }
 
-        setFilteredProducts(result);
-        setDisplayLimit(12); // Reset pagination on filter change
+            // Stock Status Filter
+            if (stockStatus.onSale) {
+                result = result.filter(p => p.onSale);
+            }
+            if (stockStatus.inStock) {
+                result = result.filter(p => p.inStock);
+            }
+
+            // Sorting
+            if (sortOption.value === 'price-asc') result.sort((a, b) => a.price - b.price);
+            else if (sortOption.value === 'price-desc') result.sort((a, b) => b.price - a.price);
+            else if (sortOption.value === 'rating') result.sort((a, b) => b.rating - a.rating);
+            else if (sortOption.value === 'date') result.sort((a, b) => b.id - a.id);
+
+            setFilteredProducts(result);
+            setDisplayLimit(12); // Reset pagination on filter change
+            setIsSearching(false); // Stop loading
+        }, 4500); // 4500ms delay for full loop
+        
+        return () => clearTimeout(timer);
     }, [searchQuery, sortOption, priceRange, selectedCategories, selectedBrands, stockStatus]);
 
     // Infinite Scroll Logic
@@ -506,7 +510,9 @@ const ShopPage = () => {
                                 <span>{filteredProducts.length} RESULTS</span>
                              </div>
                              
-                             {filteredProducts.length > 0 ? (
+                             {isSearching ? (
+                                 <SearchingLoader />
+                             ) : filteredProducts.length > 0 ? (
                                  <>
                                     <motion.div 
                                         initial="hidden"

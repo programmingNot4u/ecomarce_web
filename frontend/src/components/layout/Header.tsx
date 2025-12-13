@@ -1,8 +1,8 @@
-import { Bars3Icon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, MagnifyingGlassIcon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useMediaQuery } from '@react-hook/media-query';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import maryoneLogo from '../../assets/logos/maryone_logo.png';
 import { useCart } from '../../context/CartContext';
 import CartDrawer from './CartDrawer';
@@ -22,10 +22,22 @@ const navigation = [
 const Header = () => {
     const { scrollY } = useScroll();
     const isMobile = useMediaQuery('only screen and (max-width: 768px)');
+    const navigationHook = useNavigate(); // Renamed to avoid conflict with 'navigation' array
     const location = useLocation();
     const isHomePage = location.pathname === '/';
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    
+    // Mobile Search Handler
+    const handleMobileSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            const query = (e.target as HTMLInputElement).value;
+            if (query.trim()) {
+                setMobileMenuOpen(false);
+                navigationHook(`/shop?q=${encodeURIComponent(query)}`);
+            }
+        }
+    };
     const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
     
     // Lock body scroll when mobile menu is open
@@ -175,6 +187,21 @@ const Header = () => {
                             </div>
                             <div className="mt-8 flow-root">
                                 <div className="-my-6 divide-y divide-gray-500/10">
+                                    {/* Mobile Search Bar */}
+                                    <div className="py-6">
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                className="w-full rounded-md border-0 py-2.5 pr-10 pl-4 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6 bg-gray-50"
+                                                placeholder="Search products..."
+                                                onKeyDown={handleMobileSearch} 
+                                            />
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                                                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div className="space-y-2 py-6">
                                         {navigation.map((item, index) => (
                                             <motion.div
