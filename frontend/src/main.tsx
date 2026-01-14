@@ -8,17 +8,18 @@ import { store } from './store/store';
 
 const queryClient = new QueryClient();
 
-import { CartProvider } from './context/CartContext';
 import { NotificationProvider } from './context/NotificationContext';
+
+import { BrowserRouter } from 'react-router-dom';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <NotificationProvider>
-          <CartProvider>
+          <BrowserRouter>
             <App />
-          </CartProvider>
+          </BrowserRouter>
         </NotificationProvider>
       </QueryClientProvider>
     </Provider>

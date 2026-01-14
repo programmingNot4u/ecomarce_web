@@ -2,9 +2,12 @@ export interface Product {
     id: number;
     name: string;
     price: number;
-    category: string;
+    category: string | number; // ID (number) from API, string in mocks
+    category_name?: string; // Added from API serializer
     categoryId?: string;
-    brand: string;
+    categoryId?: string;
+    brand: string | number;
+    brand_name?: string;
     status: 'published' | 'draft' | 'archived'; 
     inStock: boolean;
     onSale: boolean;
@@ -34,6 +37,12 @@ export interface Product {
     seoDescription?: string;
     supplierName?: string;
     supplierContact?: string;
+    
+    type?: 'simple' | 'combo';
+    comboItems?: {
+        productId: number;
+        quantity: number;
+    }[];
     
     // Dynamic Content
     sections?: {

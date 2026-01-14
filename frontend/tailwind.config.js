@@ -11,9 +11,10 @@ export default {
         serif: ['Playfair Display', 'serif'],
       },
       colors: {
-        primary: '#000000',
-        secondary: '#f4f4f4',
-        accent: '#ff6600', // Aarong orange-ish
+        primary: '#4A4A4A',
+        secondary: '#8D8D8D',
+        accent: '#A68B5B',
+        background: '#FAF9F6',
       }
     },
   },

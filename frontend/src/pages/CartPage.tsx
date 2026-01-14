@@ -1,126 +1,86 @@
-import { ArrowRightIcon, MinusIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { motion } from 'framer-motion';
+import { ArrowRightIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import CartItem from '../components/cart/CartItem';
 import { useCart } from '../context/CartContext';
 
 const CartPage = () => {
-    const { cart, removeFromCart, updateQuantity, total } = useCart();
+    const { cart, total } = useCart();
 
     if (cart.length === 0) {
         return (
-            <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 bg-white">
-                <div className="text-center">
-                    <h2 className="text-3xl font-serif mb-4 text-gray-900">Your Bag is Empty</h2>
-                    <p className="text-gray-500 mb-8">Looks like you haven't made your choice yet.</p>
+            <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 bg-white">
+                <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-center max-w-md mx-auto"
+                >
+                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <ShoppingBagIcon className="w-10 h-10 text-gray-400" />
+                    </div>
+                    <h2 className="text-3xl font-serif font-medium mb-3 text-gray-900">Your Bag is Empty</h2>
+                    <p className="text-gray-500 mb-8 font-light">Looks like you haven't made your choice yet.</p>
                     <Link
                         to="/shop"
-                        className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-sm font-bold uppercase tracking-wider text-white bg-black hover:bg-gray-800 transition-colors"
+                        className="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-sm font-bold uppercase tracking-widest text-white bg-black hover:bg-zinc-800 transition-all duration-300"
                     >
                         Start Shopping
                     </Link>
-                </div>
+                </motion.div>
             </div>
         );
     }
 
     return (
-        <div className="bg-white">
-            <div className="mx-auto max-w-[1440px] px-4 py-16 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-serif font-bold text-gray-900 mb-10 text-center uppercase tracking-wider">Shopping Bag</h1>
+        <div className="bg-white min-h-screen">
+            <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                <div className="flex items-end justify-between mb-10 border-b border-gray-100 pb-6">
+                    <h1 className="text-4xl font-serif font-medium text-gray-900 tracking-tight">Shopping Bag</h1>
+                    <span className="text-gray-500 font-light">{cart.length} {cart.length === 1 ? 'item' : 'items'}</span>
+                </div>
 
-                <div className="mt-8 lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12">
-                    <section className="lg:col-span-8">
-                        <ul role="list" className="border-t border-b border-gray-200 divide-y divide-gray-200">
-                            {cart.map((product) => (
-                                <motion.li 
-                                    layout
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    key={product.id} 
-                                    className="flex py-6 sm:py-10"
-                                >
-                                    <div className="flex-shrink-0">
-                                        <img
-                                            src={product.image}
-                                            alt={product.name}
-                                            className="h-24 w-24 rounded-none object-cover object-center sm:h-32 sm:w-32 bg-gray-100"
-                                        />
-                                    </div>
-
-                                    <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
-                                        <div className="relative pr-9 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:pr-0">
-                                            <div>
-                                                <div className="flex justify-between">
-                                                    <h3 className="text-lg font-medium text-gray-900 uppercase">
-                                                        <Link to={`/products/${product.id}`}>{product.name}</Link>
-                                                    </h3>
-                                                </div>
-                                                <p className="mt-1 text-sm text-gray-500">{product.category}</p>
-                                                <p className="mt-2 text-sm font-bold text-gray-900">Tk {product.price.toFixed(2)}</p>
-                                            </div>
-
-                                            <div className="mt-4 sm:mt-0 sm:pr-9">
-                                                <div className="flex items-center border border-gray-300 w-fit">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => updateQuantity(product.id, Math.max(1, product.quantity - 1))}
-                                                        className="p-2 hover:bg-gray-100"
-                                                    >
-                                                        <MinusIcon className="h-3 w-3" />
-                                                    </button>
-                                                    <span className="w-8 text-center text-sm">{product.quantity}</span>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => updateQuantity(product.id, product.quantity + 1)}
-                                                        className="p-2 hover:bg-gray-100"
-                                                    >
-                                                        <PlusIcon className="h-3 w-3" />
-                                                    </button>
-                                                </div>
-
-                                                <div className="absolute right-0 top-0">
-                                                    <button
-                                                        type="button"
-                                                        className="-m-2 inline-flex p-2 text-gray-400 hover:text-red-500 transition-colors"
-                                                        onClick={() => removeFromCart(product.id)}
-                                                    >
-                                                        <span className="sr-only">Remove</span>
-                                                        <TrashIcon className="h-5 w-5" aria-hidden="true" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.li>
-                            ))}
+                <div className="lg:grid lg:grid-cols-12 lg:gap-x-12 lg:items-start">
+                    <div className="lg:col-span-8">
+                        <ul className="space-y-4">
+                            <AnimatePresence mode="popLayout">
+                                {cart.map((product) => (
+                                    <CartItem key={product.id} item={product} />
+                                ))}
+                            </AnimatePresence>
                         </ul>
-                    </section>
+                    </div>
 
                     {/* Order Summary */}
-                    <section className="mt-16 bg-gray-50 px-4 py-6 sm:p-6 lg:col-span-4 lg:mt-0 lg:p-8">
-                        <h2 className="text-lg font-medium text-gray-900 uppercase tracking-widest border-b border-gray-200 pb-4">Order Summary</h2>
+                    <section className="lg:col-span-4 mt-16 lg:mt-0">
+                        <div className="bg-gray-50 px-6 py-8 sm:p-8 lg:p-10 sticky top-24 rounded-sm">
+                            <h2 className="text-lg font-medium text-gray-900 uppercase tracking-widest mb-6">Order Summary</h2>
 
-                        <dl className="mt-6 space-y-4">
-                            <div className="flex items-center justify-between">
-                                <dt className="text-sm text-gray-600">Subtotal</dt>
-                                <dd className="text-sm font-medium text-gray-900">Tk {total.toFixed(2)}</dd>
-                            </div>
-                            <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-                                <dt className="text-base font-bold text-gray-900">Order Total</dt>
-                                <dd className="text-base font-bold text-gray-900">Tk {total.toFixed(2)}</dd>
-                            </div>
-                            <p className="text-xs text-gray-400">Shipping and taxes calculated at checkout.</p>
-                        </dl>
+                            <dl className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <dt className="text-sm text-gray-600">Subtotal</dt>
+                                    <dd className="text-sm font-medium text-gray-900">৳ {total.toLocaleString()}</dd>
+                                </div>
+                                <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+                                    <dt className="text-base font-bold text-gray-900">Order Total</dt>
+                                    <dd className="text-xl font-serif font-bold text-gray-900">৳ {total.toLocaleString()}</dd>
+                                </div>
+                                <p className="text-xs text-gray-500 pt-2">Shipping costs and taxes calculated at checkout.</p>
+                            </dl>
 
-                        <div className="mt-6">
-                            <Link
-                                to="/checkout"
-                                className="w-full flex items-center justify-center rounded-none bg-black px-4 py-4 text-base font-bold text-white shadow-sm hover:bg-gray-800 transition-colors uppercase tracking-widest"
-                            >
-                                Input Shipping Details
-                                <ArrowRightIcon className="ml-2 h-4 w-4" />
-                            </Link>
+                            <div className="mt-8">
+                                <Link
+                                    to="/checkout"
+                                    className="w-full flex items-center justify-center bg-black px-6 py-4 text-sm font-bold text-white shadow-sm hover:bg-zinc-800 transition-colors uppercase tracking-widest group"
+                                >
+                                    Proceed to Checkout
+                                    <ArrowRightIcon className="ml-2 h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                                <div className="mt-6 flex justify-center">
+                                    <Link to="/shop" className="text-xs font-medium text-gray-500 hover:text-black uppercase tracking-wider underline underline-offset-4 transition-colors">
+                                        Continue Shopping
+                                    </Link>
+                                </div>
+                            </div>
                         </div>
                     </section>
                 </div>

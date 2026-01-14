@@ -1,32 +1,44 @@
-import { Bars3Icon, MagnifyingGlassIcon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, ChevronDownIcon, ChevronUpIcon, MagnifyingGlassIcon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useMediaQuery } from '@react-hook/media-query';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import maryoneLogo from '../../assets/logos/maryone_logo.png';
+import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useProducts } from '../../context/ProductContext';
+import { useTheme } from '../../context/ThemeContext';
 import CartDrawer from './CartDrawer';
 import MegaMenu from './MegaMenu';
 import TopBar from './TopBar';
 
 const Header = () => {
+    const { theme } = useTheme(); // Use Theme Context
     const { scrollY } = useScroll();
     const isMobile = useMediaQuery('only screen and (max-width: 768px)');
     const navigationHook = useNavigate(); // Renamed to avoid conflict with 'navigation' array
     const location = useLocation();
     const isHomePage = location.pathname === '/';
     const { categories } = useProducts();
+    const { isAuthenticated, user } = useAuth();
 
     // Derived navigation from dynamic categories
-    const navigation = categories.map(cat => ({
-        name: cat.name.toUpperCase(),
-        href: `/category/${encodeURIComponent(cat.name).toLowerCase()}`,
-        id: cat.id
-    }));
+    const navigation = categories
+        .filter(cat => cat.showInMenu === true || String(cat.showInMenu) === 'true')
+        .map(cat => ({
+            name: cat.name.toUpperCase(),
+            href: `/category/${encodeURIComponent(cat.name).toLowerCase()}`,
+            id: cat.id
+        }));
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    
+    // State to track expanded mobile categories
+    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+    const toggleCategory = (id: string) => {
+        setExpandedCategories(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
     // Mobile Search Handler
     const handleMobileSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
@@ -38,7 +50,7 @@ const Header = () => {
         }
     };
     const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
-    
+
     // Lock body scroll when mobile menu is open
     useEffect(() => {
         if (mobileMenuOpen || cartDrawerOpen) {
@@ -50,14 +62,14 @@ const Header = () => {
             document.body.style.overflow = 'unset';
         };
     }, [mobileMenuOpen, cartDrawerOpen]);
-    
+
     // We define separate animation configurations for Mobile and Desktop to solve layout issues.
-    
+
     // Desktop Configuration: Large offset (35vh), larger scale (2.5x), standard scroll distance (300px)
-    const yDesktop = useTransform(scrollY, [0, 300], ["35vh", "0vh"]); 
+    const yDesktop = useTransform(scrollY, [0, 300], ["35vh", "0vh"]);
     const scaleDesktop = useTransform(scrollY, [0, 300], [2.5, 1]);
     const filterDesktop = useTransform(scrollY, [0, 300], ["invert(1) brightness(100)", "invert(0) brightness(1)"]);
-    
+
     // Mobile Configuration: Smaller offset (22vh) to avoid overlap, smaller scale (1.5x) to fit screen, faster transition (150px)
     // This addresses the "cut off" and "misplaced" issues on mobile.
     const yMobile = useTransform(scrollY, [0, 150], ["22vh", "0vh"]);
@@ -67,25 +79,28 @@ const Header = () => {
     const y = isMobile ? yMobile : yDesktop;
     const scale = isMobile ? scaleMobile : scaleDesktop;
     const filter = isMobile ? filterMobile : filterDesktop;
-    
-    // Logic:
-    const isAnimated = isHomePage;
-    
-    // Hide floating logo when mobile menu is open to prevent overlap
-    const logoOpacity = mobileMenuOpen ? 0 : 1; 
 
-    const logoStyle = isAnimated ? {
+    // Logic:
+    const shouldAnimate = isHomePage && theme.enableLogoAnimation; // Updated Logic
+
+    // Hide floating logo when mobile menu is open to prevent overlap
+    const logoOpacity = mobileMenuOpen ? 0 : 1;
+
+    const logoStyle = shouldAnimate ? {
         y,
         x: "0px", // Explicitly 0
         scale,
         filter,
         opacity: logoOpacity,
-        transformOrigin: "left center", 
+        transformOrigin: "left center",
         zIndex: 60,
     } : {
         filter: "invert(0)",
         opacity: logoOpacity
     };
+
+    // Determine Logo Source
+    const logoSrc = (theme.logo && theme.logo !== 'text') ? theme.logo : maryoneLogo;
 
     return (
         <header className="bg-white sticky top-0 z-50">
@@ -106,29 +121,35 @@ const Header = () => {
                         </div>
 
                         <Link to="/" className="flex items-center gap-2 group">
-                            <motion.img 
-                                src={maryoneLogo}
+                            <motion.img
+                                src={logoSrc}
                                 alt="Maryone"
                                 style={logoStyle}
                                 className="h-8 w-auto object-contain transition-all"
                             />
                         </Link>
-                        
+
                         {/* Mega Menu Integration */}
-                        <div className="hidden ml-10 lg:block self-stretch"> 
+                        <div className="hidden ml-10 lg:block self-stretch">
                             {/* self-stretch is important if we rely on h-full in nav items */}
                             <MegaMenu />
                         </div>
                     </div>
                     <div className="flex items-center space-x-6">
-                        <Link to="/login" className="text-sm font-medium text-gray-700 hover:text-gray-800">
-                            Log in
-                        </Link>
-                        <button 
+                        {isAuthenticated ? (
+                            <Link to="/account" className="hidden md:block text-sm font-medium text-gray-700 hover:text-gray-800">
+                                {user?.name || "Account"}
+                            </Link>
+                        ) : (
+                            <Link to="/login" className="hidden md:block text-sm font-medium text-gray-700 hover:text-gray-800">
+                                Log in
+                            </Link>
+                        )}
+                        <button
                             onClick={() => setCartDrawerOpen(true)}
                             className="group -m-2 flex items-center p-2"
                         >
-                             <ShoppingBagIcon
+                            <ShoppingBagIcon
                                 className="h-6 w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
                                 aria-hidden="true"
                             />
@@ -143,13 +164,13 @@ const Header = () => {
             {/* Cart Drawer Component */}
             <CartDrawer open={cartDrawerOpen} setOpen={setCartDrawerOpen} />
 
-            
+
             {/* Mobile Menu Overlay */}
             <AnimatePresence>
                 {mobileMenuOpen && (
                     <>
                         {/* Backdrop */}
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -157,7 +178,7 @@ const Header = () => {
 
                             className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm lg:hidden"
                         />
-                        
+
                         {/* Slide-out Menu Panel */}
                         <motion.div
                             initial={{ x: '-100%' }}
@@ -171,7 +192,7 @@ const Header = () => {
                                     <span className="sr-only">Maryone</span>
                                     <img
                                         className="h-8 w-auto"
-                                        src={maryoneLogo}
+                                        src={logoSrc}
                                         alt="Maryone"
                                     />
                                 </Link>
@@ -191,9 +212,9 @@ const Header = () => {
                                         <div className="relative">
                                             <input
                                                 type="text"
-                                                className="w-full rounded-md border-0 py-2.5 pr-10 pl-4 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6 bg-gray-50"
+                                                className="w-full rounded-md border-0 py-2.5 pr-10 pl-4 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 bg-gray-50"
                                                 placeholder="Search products..."
-                                                onKeyDown={handleMobileSearch} 
+                                                onKeyDown={handleMobileSearch}
                                             />
                                             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                                                 <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
@@ -202,31 +223,89 @@ const Header = () => {
                                     </div>
 
                                     <div className="space-y-2 py-6">
-                                        {navigation.map((item, index) => (
-                                            <motion.div
-                                                key={item.name}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: index * 0.1 }}
-                                            >
-                                                <Link
-                                                    to={item.href}
-                                                    className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 uppercase tracking-widest"
-                                                    onClick={() => setMobileMenuOpen(false)}
-                                                >
-                                                    {item.name}
-                                                </Link>
-                                            </motion.div>
+                                        {categories.filter(cat => cat.showInMenu === true || String(cat.showInMenu) === 'true').map((cat) => (
+                                            <div key={cat.id} className="border-b border-gray-100 last:border-0 pb-2">
+                                                <div className="flex items-center justify-between">
+                                                    <Link
+                                                        to={`/category/${encodeURIComponent(cat.name).toLowerCase()}`}
+                                                        className="block rounded-lg py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 uppercase tracking-widest flex-grow"
+                                                        onClick={() => setMobileMenuOpen(false)}
+                                                    >
+                                                        {cat.name}
+                                                    </Link>
+                                                    {cat.subCategories && cat.subCategories.length > 0 && (
+                                                        <button
+                                                            onClick={() => toggleCategory(cat.id)}
+                                                            className="p-2 text-gray-500 hover:text-gray-900"
+                                                        >
+                                                            {expandedCategories[cat.id] ? (
+                                                                <ChevronUpIcon className="h-5 w-5" />
+                                                            ) : (
+                                                                <ChevronDownIcon className="h-5 w-5" />
+                                                            )}
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* Subcategories */}
+                                                <AnimatePresence>
+                                                    {expandedCategories[cat.id] && cat.subCategories && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            className="overflow-hidden pl-4 space-y-2"
+                                                        >
+                                                            {cat.subCategories.map(sub => (
+                                                                <div key={sub.id} className="py-1">
+                                                                    <Link
+                                                                        to={`/category/${encodeURIComponent(sub.name).toLowerCase()}`}
+                                                                        className="block py-3 text-sm font-medium text-gray-600 hover:text-primary uppercase tracking-wider pl-2 border-l-2 border-transparent hover:border-gray-200 transition-all"
+                                                                        onClick={() => setMobileMenuOpen(false)}
+                                                                    >
+                                                                        {sub.name}
+                                                                    </Link>
+                                                                    {/* Level 3 */}
+                                                                    {sub.subCategories && sub.subCategories.length > 0 && (
+                                                                        <div className="pl-4 mt-1 border-l border-gray-200">
+                                                                            {sub.subCategories.map(l3 => (
+                                                                                <Link
+                                                                                    key={l3.id}
+                                                                                    to={`/category/${encodeURIComponent(l3.name).toLowerCase()}`}
+                                                                                    className="block py-2 text-xs font-medium text-gray-500 hover:text-primary uppercase tracking-wide opacity-80"
+                                                                                    onClick={() => setMobileMenuOpen(false)}
+                                                                                >
+                                                                                    {l3.name}
+                                                                                </Link>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
                                         ))}
                                     </div>
                                     <div className="py-6">
-                                        <Link
-                                            to="/login"
-                                            className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                                            onClick={() => setMobileMenuOpen(false)}
-                                        >
-                                            Log in
-                                        </Link>
+                                        {isAuthenticated ? (
+                                            <Link
+                                                to="/account"
+                                                className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                Account
+                                            </Link>
+                                        ) : (
+                                            <Link
+                                                to="/login"
+                                                className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                Log in
+                                            </Link>
+                                        )}
                                     </div>
                                 </div>
                             </div>

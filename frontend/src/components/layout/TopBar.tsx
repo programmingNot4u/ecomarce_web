@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import type { RootState } from '../../store/store';
 
 const TopBar = () => {
+    const { theme } = useTheme();
     const totalQuantity = useSelector((state: RootState) => state.cart.totalQuantity);
     const wishlistCount = useSelector((state: RootState) => state.wishlist.items.length);
     const [query, setQuery] = useState('');
@@ -26,7 +28,13 @@ const TopBar = () => {
 
     return (
         <div className="bg-white border-b border-gray-100 hidden sm:block">
-            <div className="mx-auto max-w-[1920px] px-6 md:px-20 h-10 flex items-center justify-end space-x-8">
+            <div className="mx-auto max-w-[1920px] px-6 md:px-20 h-10 flex items-center justify-between space-x-8">
+                
+                {/* Help Text */}
+                <div className="hidden lg:flex items-center text-xs font-medium text-gray-500">
+                    <span>{theme.textSnippets?.header_help_text || "Need Help? Call Us:"}</span>
+                    <span className="ml-2 text-gray-900">{theme.textSnippets?.contact_phone || "09613660321"}</span>
+                </div>
                 
                 {/* Search Bar - Functional and Aesthetic */}
                 <div className="flex items-center border-b border-gray-200 focus-within:border-black transition-colors duration-300 pb-1 w-64 group">
@@ -51,7 +59,7 @@ const TopBar = () => {
                         <UserIcon className="h-5 w-5" />
                     </Link>
                      <div className="relative">
-                        <Link to="/wishlist" className="text-gray-600 hover:text-black">
+                        <Link to="/account/wishlist" className="text-gray-600 hover:text-black">
                              <HeartIcon className="h-5 w-5" />
                              {wishlistCount > 0 && (
                                 <span className="absolute -top-1 -right-1 h-3.5 w-3.5 bg-accent text-[10px] text-white flex items-center justify-center rounded-full">

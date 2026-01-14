@@ -13,75 +13,83 @@ export default function DashboardOverview() {
   };
 
   const actions = [
-    { 
-        name: 'Orders', 
-        href: '/account/orders', 
-        icon: ShoppingBagIcon, 
-        description: 'View your recent orders' 
-    },
-    { 
-        name: 'Downloads', 
-        href: '/account/downloads', 
-        icon: ArrowRightOnRectangleIcon, 
-        description: 'Manage downloads' 
-    },
-    { 
-        name: 'Addresses', 
-        href: '/account/addresses', 
-        icon: MapPinIcon, 
-        description: 'Edit addresses' 
-    },
-    { 
-        name: 'Account details', 
-        href: '/account/edit-account', 
-        icon: UserIcon, 
-        description: 'Edit your password and account details' 
+    {
+      name: 'Orders',
+      href: '/account/orders',
+      icon: ShoppingBagIcon,
+      description: 'View your recent orders'
     },
     {
-        name: 'Wishlist',
-        href: '/wishlist',
-        icon: HeartIcon,
-        description: 'View your wishlist'
+      name: 'Downloads',
+      href: '/account/downloads',
+      icon: ArrowRightOnRectangleIcon,
+      description: 'Manage downloads'
     },
     {
-        name: 'Logout',
-        href: '#',
-        icon: ArrowRightOnRectangleIcon,
-        description: 'Logout from your account',
-        onClick: handleLogout
+      name: 'Addresses',
+      href: '/account/addresses',
+      icon: MapPinIcon,
+      description: 'Edit addresses'
+    },
+    {
+      name: 'Account details',
+      href: '/account/edit-account',
+      icon: UserIcon,
+      description: 'Edit your password and account details'
+    },
+    {
+      name: 'Wishlist',
+      href: '/wishlist',
+      icon: HeartIcon,
+      description: 'View your wishlist'
+    },
+    {
+      name: 'Logout',
+      href: '#',
+      icon: ArrowRightOnRectangleIcon,
+      description: 'Logout from your account',
+      onClick: handleLogout
     }
   ];
 
   return (
-    <div>
-      <p className="text-gray-600 mb-8">
-        Hello <span className="font-bold text-gray-900">{user?.name}</span> (not <span className="font-bold text-gray-900">{user?.name}</span>? <a href="#" onClick={handleLogout} className="text-blue-600 hover:underline">Log out</a>)
-      </p>
-      <p className="text-gray-600 mb-10">
-        From your account dashboard you can view your <a href="/account/orders" className="text-blue-600 hover:underline">recent orders</a>, manage your <a href="/account/addresses" className="text-blue-600 hover:underline">shipping and billing addresses</a>, and <a href="/account/edit-account" className="text-blue-600 hover:underline">edit your password and account details</a>.
-      </p>
+    <div className="space-y-8">
+      {/* Profile Header - Mobile App Style */}
+      <div className="flex items-center space-x-4 bg-gray-50 p-6 rounded-2xl border border-gray-100">
+        <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400">
+          <UserIcon className="h-8 w-8" />
+        </div>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Hello, {user?.name}!</h2>
+          <p className="text-sm text-gray-500">{user?.email || user?.phone_number || 'Welcome back'}</p>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {actions.map((action) => (
-             action.onClick ? (
-                <button
-                    key={action.name}
-                    onClick={action.onClick}
-                    className="flex flex-col items-center justify-center p-8 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all text-center aspect-[4/3] group w-full"
-                >
-                    <action.icon className="h-10 w-10 text-gray-400 group-hover:text-gray-900 mb-4 transition-colors" aria-hidden="true" />
-                    <span className="text-base font-medium text-gray-900">{action.name}</span>
-                </button>
-             ) : (
-                <NavLink
-                    key={action.name}
-                    to={action.href}
-                    className="flex flex-col items-center justify-center p-8 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all text-center aspect-[4/3] group"
-                >
-                    <action.icon className="h-10 w-10 text-gray-400 group-hover:text-gray-900 mb-4 transition-colors" aria-hidden="true" />
-                    <span className="text-base font-medium text-gray-900">{action.name}</span>
-                </NavLink>
-             )
+          action.onClick ? (
+            <button
+              key={action.name}
+              onClick={action.onClick}
+              className="flex flex-col items-center justify-center p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-200 transition-all text-center group aspect-square sm:aspect-auto sm:py-8"
+            >
+              <div className="bg-gray-50 p-4 rounded-full mb-3 group-hover:bg-red-50 transition-colors">
+                <action.icon className="h-6 w-6 text-gray-600 group-hover:text-red-600 transition-colors" aria-hidden="true" />
+              </div>
+              <span className="text-sm font-bold text-gray-900">{action.name}</span>
+            </button>
+          ) : (
+            <NavLink
+              key={action.name}
+              to={action.href}
+              className="flex flex-col items-center justify-center p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-200 transition-all text-center group aspect-square sm:aspect-auto sm:py-8"
+            >
+              <div className="bg-gray-50 p-4 rounded-full mb-3 group-hover:bg-red-50 transition-colors">
+                <action.icon className="h-6 w-6 text-gray-600 group-hover:text-red-600 transition-colors" aria-hidden="true" />
+              </div>
+              <span className="text-sm font-bold text-gray-900">{action.name}</span>
+            </NavLink>
+          )
         ))}
       </div>
     </div>

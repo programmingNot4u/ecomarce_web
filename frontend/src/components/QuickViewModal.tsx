@@ -4,6 +4,7 @@ import { Fragment, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { useNotification } from '../context/NotificationContext';
+import { getMediaUrl } from '../services/api';
 import { addToCart } from '../store/slices/cartSlice';
 
 interface Product {
@@ -75,12 +76,12 @@ const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps) => {
                                     {/* Image Section */}
                                     <div className="relative aspect-square md:aspect-auto h-full bg-gray-100">
                                         <img
-                                            src={product.image}
+                                            src={getMediaUrl(product.image)}
                                             alt={product.name}
                                             className="h-full w-full object-cover object-center"
                                         />
                                         <div className="absolute top-4 right-4">
-                                             <HeartIcon className="h-6 w-6 text-gray-600 hover:text-black cursor-pointer" />
+                                            <HeartIcon className="h-6 w-6 text-gray-600 hover:text-black cursor-pointer" />
                                         </div>
                                     </div>
 
@@ -88,29 +89,29 @@ const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps) => {
                                     <div className="p-8 md:p-12 flex flex-col justify-center">
                                         <h2 className="text-2xl font-serif font-bold text-gray-900">{product.name}</h2>
                                         <p className="mt-4 text-xl font-medium text-gray-900">Tk {product.price.toFixed(2)}</p>
-                                        
+
                                         <div className="mt-8">
                                             <div className="flex items-center justify-between">
                                                 <h3 className="text-sm font-medium text-gray-900">Quantity</h3>
                                                 <h3 className="text-sm font-medium text-gray-900">Size</h3>
                                             </div>
-                                            
+
                                             <div className="mt-2 flex space-x-4">
                                                 {/* Quantity Selector */}
                                                 <div className="flex items-center border border-gray-300">
-                                                    <button 
+                                                    <button
                                                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                                                         className="p-3 hover:bg-gray-100"
                                                     >
                                                         <MinusIcon className="h-4 w-4" />
                                                     </button>
-                                                    <input 
-                                                        type="text" 
-                                                        value={quantity} 
-                                                        readOnly 
+                                                    <input
+                                                        type="text"
+                                                        value={quantity}
+                                                        readOnly
                                                         className="w-12 text-center border-none p-0 text-sm focus:ring-0"
                                                     />
-                                                     <button 
+                                                    <button
                                                         onClick={() => setQuantity(quantity + 1)}
                                                         className="p-3 hover:bg-gray-100"
                                                     >
@@ -119,7 +120,7 @@ const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps) => {
                                                 </div>
 
                                                 {/* Size Selector Mock */}
-                                                <select 
+                                                <select
                                                     className="block w-full border-gray-300 py-3 pl-3 pr-10 text-base focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                                                     value={selectedSize}
                                                     onChange={(e) => setSelectedSize(e.target.value)}
@@ -134,7 +135,7 @@ const QuickViewModal = ({ isOpen, onClose, product }: QuickViewModalProps) => {
                                         </div>
 
                                         <div className="mt-8 space-y-3">
-                                            <Link 
+                                            <Link
                                                 to={`/products/${product.id}`}
                                                 className="flex w-full items-center justify-center border border-gray-300 bg-white px-8 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 uppercase tracking-wider"
                                                 onClick={onClose}

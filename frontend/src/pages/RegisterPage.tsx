@@ -9,11 +9,15 @@ const RegisterPage = () => {
     const { register } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if(name && email && password) {
-            register(name, email);
-            navigate('/account');
+        if (name && email && password) {
+            const result = await register(name, email, password);
+            if (result.success) {
+                navigate('/account');
+            } else {
+                alert(result.error);
+            }
         }
     };
 
@@ -27,7 +31,7 @@ const RegisterPage = () => {
 
             <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
                 <form className="space-y-6" onSubmit={handleSubmit}>
-                     <div>
+                    <div>
                         <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
                             Full Name
                         </label>
@@ -44,7 +48,7 @@ const RegisterPage = () => {
                             />
                         </div>
                     </div>
-                    
+
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
                             Email address
